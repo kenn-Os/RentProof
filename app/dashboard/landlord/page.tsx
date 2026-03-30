@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { StatCard } from '@/components/dashboard/StatCard'
-import { StatusBadge } from '@/components/ui/StatusBadge'
+import type { Property, Tenancy, RentPayment } from '@/lib/types/database'
 import {
   Building2,
   Users,
@@ -39,10 +39,11 @@ export default async function LandlordDashboardPage() {
     .eq('landlord_id', user.id)
     .eq('is_active', true)
 
-  const allTenancies = properties?.flatMap((p: any) => p.tenancies ?? []) ?? []
-  const allPayments = allTenancies.flatMap((t: any) => t.rent_payments ?? [])
-  const pendingPayments = allPayments.filter((p: any) => p.status === 'pending')
-  const verifiedPayments = allPayments.filter((p: any) => p.status === 'verified')
+  const typedProperties = (properties as unknown as Property[]) ?? []
+  const allTenancies = typedProperties.flatMap((p) => p.tenancies ?? [])
+  const allPayments = allTenancies.flatMap((t) => t.rent_payments ?? [])
+  const pendingPayments = allPayments.filter((p) => p.status === 'pending')
+  const verifiedPayments = allPayments.filter((p) => p.status === 'verified')
 
   return (
     <div className="p-8">
@@ -59,13 +60,13 @@ export default async function LandlordDashboardPage() {
       <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
           title="Properties"
-          value={properties?.length ?? 0}
+          value={typedProperties?.length ?? 0}
           icon={<Building2 className="h-5 w-5 text-slate-600" />}
           iconBg="bg-slate-100"
         />
         <StatCard
           title="Active Tenants"
-          value={allTenancies.filter((t: any) => t.is_active).length}
+          value={allTenancies.filter((t: Tenancy) => t.is_active).length}
           icon={<Users className="h-5 w-5 text-blue-600" />}
           iconBg="bg-blue-50"
         />
@@ -111,17 +112,17 @@ export default async function LandlordDashboardPage() {
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <CheckCircle2 className="mb-2 h-10 w-10 text-green-200" />
                 <p className="text-sm text-slate-500">
-                  All payments confirmed — you're up to date!
+                  All payments confirmed — you&apos;re up to date!
                 </p>
               </div>
             ) : (
               <div className="divide-y divide-slate-50">
-                {pendingPayments.slice(0, 5).map((payment: any) => {
-                  const tenancy = allTenancies.find((t: any) =>
-                    t.rent_payments?.some((p: any) => p.id === payment.id)
+                {pendingPayments.slice(0, 5).map((payment: RentPayment) => {
+                  const tenancy = allTenancies.find((t: Tenancy) =>
+                    t.rent_payments?.some((p: RentPayment) => p.id === payment.id)
                   )
-                  const property = properties?.find(
-                    (prop: any) => prop.id === tenancy?.property_id
+                  const matchProperty = typedProperties.find(
+                    (prop: Property) => prop.id === tenancy?.property_id
                   )
 
                   return (
@@ -131,7 +132,7 @@ export default async function LandlordDashboardPage() {
                     >
                       <div>
                         <p className="text-sm font-medium text-slate-900">
-                          {property?.address_line1 ?? 'Property'}
+                          {matchProperty?.address_line1 ?? 'Property'}
                         </p>
                         <p className="text-xs text-slate-400">
                           {formatRentPeriod(
@@ -172,7 +173,7 @@ export default async function LandlordDashboardPage() {
                 Manage <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
-            {properties?.length === 0 ? (
+            {typedProperties.length === 0 ? (
               <div className="p-5 text-center">
                 <p className="text-sm text-slate-500">
                   No properties yet.{' '}
@@ -186,9 +187,9 @@ export default async function LandlordDashboardPage() {
               </div>
             ) : (
               <div className="divide-y divide-slate-50">
-                {properties?.map((property: any) => {
+                {typedProperties.map((property: Property) => {
                   const activeTenancies = (property.tenancies ?? []).filter(
-                    (t: any) => t.is_active
+                    (t: Tenancy) => t.is_active
                   )
                   return (
                     <div key={property.id} className="p-4">

@@ -9,6 +9,7 @@ import {
   Search,
 } from 'lucide-react'
 import { formatCurrency, formatDate, formatRentPeriod, formatPaymentMethod } from '@/lib/utils'
+import type { RentPayment } from '@/lib/types/database'
 
 export const metadata = { title: 'My Payments' }
 
@@ -111,7 +112,7 @@ export default async function TenantPaymentsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {payments.map((payment: any) => (
+              {(payments as unknown as RentPayment[]).map((payment) => (
                 <tr
                   key={payment.id}
                   className="hover:bg-slate-50 transition-colors"

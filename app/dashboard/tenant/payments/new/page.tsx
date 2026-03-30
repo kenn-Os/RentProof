@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Upload, Info, Copy, CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -9,10 +8,10 @@ import { createRentPayment } from '@/app/dashboard/actions'
 import { Button } from '@/components/ui/Button'
 import { Input, Select, Textarea } from '@/components/ui/FormFields'
 import { createClient } from '@/lib/supabase/client'
-import type { Tenancy, Property } from '@/lib/types/database'
+import type { Tenancy, Property, PaymentMethod } from '@/lib/types/database'
 
 export default function NewPaymentPage() {
-  const router = useRouter()
+
   const [loading, setLoading] = useState(false)
   const [tenancies, setTenancies] = useState<(Tenancy & { property: Property })[]>([])
   const [selectedTenancy, setSelectedTenancy] = useState<string>('')
@@ -46,7 +45,7 @@ export default function NewPaymentPage() {
       rent_period_start: form.get('rent_period_start') as string,
       rent_period_end: form.get('rent_period_end') as string,
       amount: parseFloat(form.get('amount') as string),
-      payment_method: form.get('payment_method') as any,
+      payment_method: form.get('payment_method') as PaymentMethod,
       payment_reference: form.get('payment_reference') as string,
       notes: form.get('notes') as string,
     })
@@ -108,7 +107,7 @@ export default function NewPaymentPage() {
               </button>
             </div>
             <p className="mt-2 text-xs text-slate-400">
-              This link expires in 30 days. If the landlord doesn't confirm,
+              This link expires in 30 days. If the landlord doesn&apos;t confirm,
               your timestamped record still stands.
             </p>
           </div>
@@ -296,7 +295,7 @@ export default function NewPaymentPage() {
 
           <div className="rounded-xl border border-amber-100 bg-amber-50 p-5">
             <h3 className="mb-1.5 text-sm font-semibold text-amber-900">
-              If landlord doesn't confirm
+              If landlord doesn&apos;t confirm
             </h3>
             <p className="text-xs text-amber-700">
               Your timestamped declaration still stands as documented proof.
