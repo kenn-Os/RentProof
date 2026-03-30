@@ -12,9 +12,26 @@ interface Props {
   params: Promise<{ token: string }>
 }
 
+interface Payment {
+  receipt_id: string
+  status: string
+  rent_period_start: string
+  rent_period_end: string
+  amount: number
+  currency: string
+  payment_method: string
+  tenancy: {
+    property: {
+      address_line1: string
+      city: string
+      postcode: string
+    }
+  }
+}
+
 export default function ConfirmPaymentPage({ params }: Props) {
   const [token, setToken] = useState<string | null>(null)
-  const [payment, setPayment] = useState<any>(null)
+  const [payment, setPayment] = useState<Payment | null>(null)
   const [loading, setLoading] = useState(true)
   const [confirming, setConfirming] = useState(false)
   const [result, setResult] = useState<
@@ -26,7 +43,7 @@ export default function ConfirmPaymentPage({ params }: Props) {
       setToken(t)
       loadPayment(t)
     })
-  }, [])
+  }, [params])
 
   async function loadPayment(t: string) {
     const supabase = createClient()
@@ -49,7 +66,9 @@ export default function ConfirmPaymentPage({ params }: Props) {
       .eq('confirmation_token', t)
       .single()
 
-    setPayment(data)
+    if (data) {
+      setPayment(data as unknown as Payment)
+    }
     setLoading(false)
   }
 
@@ -101,7 +120,7 @@ export default function ConfirmPaymentPage({ params }: Props) {
               Payment Confirmed
             </h1>
             <p className="mt-2 text-slate-500">
-              You've confirmed receipt of this rent payment. The tenant's
+              You&apos;ve confirmed receipt of this rent payment. The tenant&apos;s
               record is now marked as Verified.
             </p>
             <div className="mt-4 rounded-lg bg-slate-50 p-3">

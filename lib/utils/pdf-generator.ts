@@ -26,13 +26,6 @@ export function generateReceiptPDF(data: ReceiptData): jsPDF {
   const pageWidth = doc.internal.pageSize.getWidth()
   const margin = 20
 
-  // ── Colours ──────────────────────────────────────────────
-  const navyHex = '#0f172a'
-  const greenHex = '#16a34a'
-  const lightGrey = '#f8fafc'
-  const borderGrey = '#e2e8f0'
-  const textMuted = '#64748b'
-
   // ── Header bar ───────────────────────────────────────────
   doc.setFillColor(15, 23, 42)       // slate-900
   doc.rect(0, 0, pageWidth, 38, 'F')
@@ -62,7 +55,6 @@ export function generateReceiptPDF(data: ReceiptData): jsPDF {
 
   // ── Status badge ─────────────────────────────────────────
   const isVerified = payment.status === 'verified'
-  const badgeColor = isVerified ? greenHex : '#d97706'
   const badgeLabel = isVerified ? '✓ VERIFIED' : '⏳ PENDING CONFIRMATION'
 
   doc.setFillColor(isVerified ? 22 : 217, isVerified ? 163 : 119, isVerified ? 74 : 6)
@@ -167,7 +159,8 @@ export function generateReceiptPDF(data: ReceiptData): jsPDF {
     },
   })
 
-  y = (doc as any).lastAutoTable.finalY + 10
+  const lastAutoTableY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY
+  y = lastAutoTableY + 10
 
   // ── Confirmation block ────────────────────────────────────
   if (isVerified && confirmation) {

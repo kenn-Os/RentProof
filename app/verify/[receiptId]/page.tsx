@@ -55,9 +55,8 @@ export default async function PublicReceiptPage({ params }: Props) {
 
   const isVerified = payment.status === 'verified'
   const isPending = payment.status === 'pending'
-  const isDisputed = payment.status === 'disputed'
 
-  const property = (payment.tenancy as any)?.property
+  const property = (payment.tenancy as unknown as { property: { city: string, postcode: string, country: string } })?.property
   const confirmation = Array.isArray(payment.confirmation)
     ? payment.confirmation[0]
     : payment.confirmation
