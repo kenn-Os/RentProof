@@ -168,9 +168,15 @@ export async function confirmPaymentByToken(token: string) {
   }
 
   // Verify the confirmer is the landlord
-  const tenancy = payment.tenancies as any
-  const property = tenancy?.properties as any
-  if (property?.landlord_id !== user.id) {
+  const typedPayment = payment as unknown as { 
+    tenancies: { 
+      properties: { 
+        landlord_id: string 
+      } | null 
+    } | null 
+  }
+  
+  if (typedPayment.tenancies?.properties?.landlord_id !== user.id) {
     return { error: 'Only the landlord of this property can confirm this payment' }
   }
 

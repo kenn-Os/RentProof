@@ -41,10 +41,10 @@ export default function SignInPage() {
 
         <div>
           <blockquote className="font-display text-2xl font-medium italic leading-relaxed text-white">
-            "Finally, a receipt system both sides trust."
+            &quot;Finally, a receipt system both sides trust.&quot;
           </blockquote>
           <p className="mt-4 text-sm text-slate-400">
-            — A landlord who's been through a tribunal
+            — A landlord who&apos;s been through a tribunal
           </p>
         </div>
 
@@ -146,7 +146,7 @@ export default function SignInPage() {
           </form>
 
           <div className="mt-8 text-center text-sm text-slate-500">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link
               href="/auth/signup"
               className="font-medium text-slate-900 hover:underline"

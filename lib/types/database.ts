@@ -43,6 +43,7 @@ export interface Property {
   // Joined
   landlord?: Profile
   agent?: Profile
+  tenancies?: Tenancy[]
 }
 
 export interface Tenancy {

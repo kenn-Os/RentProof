@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { StatCard } from '@/components/dashboard/StatCard'
-import { StatusBadge } from '@/components/ui/StatusBadge'
+import { Property, Tenancy, RentPayment } from '@/lib/types/database'
 import {
   Building2,
   Users,
@@ -10,7 +10,6 @@ import {
   TrendingUp,
   ArrowRight,
 } from 'lucide-react'
-import { formatCurrency, formatDate, formatRentPeriod } from '@/lib/utils'
 
 export const metadata = { title: 'Agent Dashboard' }
 
@@ -38,9 +37,10 @@ export default async function AgentDashboardPage() {
     .eq('agent_id', user.id)
     .eq('is_active', true)
 
-  const allTenancies = properties?.flatMap((p: any) => p.tenancies ?? []) ?? []
-  const allPayments = allTenancies.flatMap((t: any) => t.rent_payments ?? [])
-  const thisMonthPayments = allPayments.filter((p: any) => {
+  const typedProperties = properties as unknown as Property[]
+  const allTenancies = typedProperties?.flatMap((p) => p.tenancies ?? []) ?? []
+  const allPayments = allTenancies.flatMap((t) => t.rent_payments ?? [])
+  const thisMonthPayments = allPayments.filter((p) => {
     const d = new Date(p.created_at)
     const now = new Date()
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
@@ -67,7 +67,7 @@ export default async function AgentDashboardPage() {
         />
         <StatCard
           title="Tenants"
-          value={allTenancies.filter((t: any) => t.is_active).length}
+          value={allTenancies.filter((t: Tenancy) => t.is_active).length}
           icon={<Users className="h-5 w-5 text-blue-600" />}
           iconBg="bg-blue-50"
         />
@@ -117,10 +117,10 @@ export default async function AgentDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {properties?.map((property: any) => {
-                  const activeTenancies = (property.tenancies ?? []).filter((t: any) => t.is_active)
-                  const propertyPayments = (property.tenancies ?? []).flatMap((t: any) => t.rent_payments ?? [])
-                  const pending = propertyPayments.filter((p: any) => p.status === 'pending').length
+                {typedProperties.map((property: Property) => {
+                  const activeTenancies = (property.tenancies ?? []).filter((t: Tenancy) => t.is_active)
+                  const propertyPayments = (property.tenancies ?? []).flatMap((t: Tenancy) => t.rent_payments ?? [])
+                  const pending = propertyPayments.filter((p: RentPayment) => p.status === 'pending').length
 
                   return (
                     <tr key={property.id} className="hover:bg-slate-50 transition-colors">
