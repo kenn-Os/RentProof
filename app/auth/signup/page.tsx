@@ -6,6 +6,7 @@ import { ShieldCheck, Building2, Users, Briefcase, Eye, EyeOff } from 'lucide-re
 import { signUp } from '@/app/auth/actions'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/FormFields'
+import { Logo } from '@/components/ui/Logo'
 import { cn } from '@/lib/utils'
 import type { UserRole } from '@/lib/types/database'
 
@@ -45,7 +46,7 @@ export default function SignUpPage() {
     formData.set('role', role)
     const result = await signUp(formData)
 
-    if (result?.error) {
+    if (result && 'error' in result && result.error) {
       setError(result.error)
       setLoading(false)
     }
@@ -55,11 +56,9 @@ export default function SignUpPage() {
     <div className="flex min-h-screen">
       {/* Left */}
       <div className="hidden w-2/5 flex-col justify-between bg-slate-950 p-12 md:flex">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10">
-            <ShieldCheck className="h-4.5 w-4.5 text-white" />
-          </div>
-          <span className="font-display text-lg font-semibold text-white">
+        <Link href="/" className="flex items-center gap-3">
+          <Logo iconOnly size="md" />
+          <span className="font-display text-lg font-bold text-white uppercase tracking-widest">
             RentProof
           </span>
         </Link>

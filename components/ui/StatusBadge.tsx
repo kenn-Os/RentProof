@@ -7,30 +7,20 @@ interface StatusBadgeProps {
   size?: 'sm' | 'md'
 }
 
-export function StatusBadge({ status, className, size = 'md' }: StatusBadgeProps) {
+export function StatusBadge({ status, className }: StatusBadgeProps) {
   const config = getStatusConfig(status)
 
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border font-medium',
-        config.color,
-        config.bg,
-        config.border,
-        size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-xs',
+        'inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider',
+        status === 'verified' && 'border-brand-600/20 bg-brand-600/5 text-brand-600',
+        status === 'pending' && 'border-ink-900/20 bg-paper-200 text-ink-700',
+        status === 'disputed' && 'border-audit-600/20 bg-audit-600/5 text-audit-600',
+        (status === 'draft' || status === 'expired') && 'border-ink-900/10 bg-paper-100 text-ink-500',
         className
       )}
     >
-      <span
-        className={cn(
-          'rounded-full',
-          size === 'sm' ? 'h-1.5 w-1.5' : 'h-2 w-2',
-          status === 'verified' && 'bg-green-500',
-          status === 'pending' && 'bg-amber-500',
-          status === 'disputed' && 'bg-red-500',
-          (status === 'draft' || status === 'expired') && 'bg-slate-400'
-        )}
-      />
       {config.label}
     </span>
   )

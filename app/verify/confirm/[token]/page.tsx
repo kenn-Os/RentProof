@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ShieldCheck, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react'
+import { CheckCircle2, AlertTriangle, Loader2, ArrowRight } from 'lucide-react'
+import { Logo } from '@/components/ui/Logo'
 import { confirmPaymentByToken } from '@/app/dashboard/actions'
 import { Button } from '@/components/ui/Button'
 import { formatCurrency, formatRentPeriod } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/client'
 
 interface Props {
   params: Promise<{ token: string }>
@@ -46,29 +46,26 @@ export default function ConfirmPaymentPage({ params }: Props) {
   }, [params])
 
   async function loadPayment(t: string) {
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('rent_payments')
-      .select(
-        `
-        receipt_id,
-        status,
-        rent_period_start,
-        rent_period_end,
-        amount,
-        currency,
-        payment_method,
-        tenancy:tenancies(
-          property:properties(address_line1, city, postcode)
-        )
-      `
-      )
-      .eq('confirmation_token', t)
-      .single()
-
-    if (data) {
-      setPayment(data as unknown as Payment)
+    // Mock data for UI prototype
+    const mockPayment: Payment = {
+      receipt_id: `RP-${Math.floor(100000 + Math.random() * 900000)}`,
+      status: 'pending',
+      rent_period_start: '2024-03-01',
+      rent_period_end: '2024-03-31',
+      amount: 1200.00,
+      currency: 'GBP',
+      payment_method: 'bank_transfer',
+      tenancy: {
+        property: {
+          address_line1: '123 Baker Street',
+          city: 'London',
+          postcode: 'NW1 6XE'
+        }
+      }
     }
+    
+    console.log('Mock: Loaded payment for confirmation token', t)
+    setPayment(mockPayment)
     setLoading(false)
   }
 
@@ -76,12 +73,12 @@ export default function ConfirmPaymentPage({ params }: Props) {
     if (!token) return
     setConfirming(true)
 
-    const res = await confirmPaymentByToken(token)
+    const res = await confirmPaymentByToken(token as string)
 
-    if ('error' in res && res.error) {
-      setResult({ success: false, error: res.error })
-    } else if ('data' in res && res.data) {
+    if (res.data) {
       setResult({ success: true, receiptId: res.data.receipt_id })
+    } else {
+      setResult({ success: false, error: 'Failed to confirm payment' })
     }
 
     setConfirming(false)
@@ -89,22 +86,20 @@ export default function ConfirmPaymentPage({ params }: Props) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+      <div className="flex min-h-screen items-center justify-center bg-paper-100">
+        <Loader2 className="h-8 w-8 animate-spin text-ink-300" />
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-6 py-12">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-paper-100 px-6 py-12">
       <div className="w-full max-w-md">
         {/* Logo */}
-        <div className="mb-8 flex justify-center">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900">
-              <ShieldCheck className="h-5 w-5 text-white" />
-            </div>
-            <span className="font-display text-xl font-semibold text-slate-900">
+        <div className="mb-12 flex justify-center">
+          <Link href="/" className="flex items-center gap-3">
+            <Logo iconOnly size="sm" />
+            <span className="font-display text-sm font-bold uppercase tracking-widest text-ink-900">
               RentProof
             </span>
           </Link>
@@ -112,115 +107,120 @@ export default function ConfirmPaymentPage({ params }: Props) {
 
         {/* Success state */}
         {result?.success && (
-          <div className="rounded-2xl border border-green-200 bg-white p-8 text-center shadow-sm">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-              <CheckCircle2 className="receipt-stamp h-8 w-8 text-green-600" />
+          <div className="bg-paper-50 border border-brand-600/20 p-10 text-center shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)]">
+            <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center border-2 border-brand-600 bg-brand-600/10">
+              <CheckCircle2 className="h-8 w-8 text-brand-600" />
             </div>
-            <h1 className="font-display text-2xl font-bold text-slate-900">
-              Payment Confirmed
+            <h1 className="font-display text-3xl font-bold text-ink-900 mb-4">
+              Audit <span className="italic text-brand-600">Confirmed.</span>
             </h1>
-            <p className="mt-2 text-slate-500">
-              You&apos;ve confirmed receipt of this rent payment. The tenant&apos;s
-              record is now marked as Verified.
+            <p className="text-sm font-medium text-ink-600 leading-relaxed">
+              You have successfully confirmed receipt of this rent payment. 
+              The protocol record has been updated to Verified.
             </p>
-            <div className="mt-4 rounded-lg bg-slate-50 p-3">
-              <p className="text-xs text-slate-500">Receipt ID</p>
-              <p className="receipt-id-chip mt-0.5 text-sm text-slate-800">
+            <div className="mt-8 border border-ink-900/5 bg-paper-100 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-ink-400 mb-1">RECORD ID</p>
+              <p className="text-xs font-bold text-ink-900 font-mono tracking-widest">
                 {result.receiptId}
               </p>
             </div>
             <Link
               href="/"
-              className="mt-6 inline-block text-sm text-green-600 hover:underline"
+              className="mt-10 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-brand-600 hover:text-brand-500 group"
             >
-              Learn about RentProof →
+              Back to Protocol Home
+              <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
         )}
 
         {/* Error state */}
         {result?.success === false && (
-          <div className="rounded-2xl border border-red-200 bg-white p-8 text-center shadow-sm">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+          <div className="bg-paper-50 border border-red-600/20 p-10 text-center shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)]">
+            <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center border-2 border-red-600 bg-red-600/10">
               <AlertTriangle className="h-8 w-8 text-red-600" />
             </div>
-            <h1 className="font-display text-2xl font-bold text-slate-900">
-              Confirmation Failed
+            <h1 className="font-display text-3xl font-bold text-ink-900 mb-4">
+              Audit <span className="italic text-red-600">Rejected.</span>
             </h1>
-            <p className="mt-2 text-sm text-red-600">{result.error}</p>
-            <p className="mt-3 text-sm text-slate-500">
-              If you believe this is an error, contact your tenant or{' '}
-              <Link href="/" className="text-green-600 underline">
-                RentProof support
-              </Link>
-              .
+            <p className="text-sm font-medium text-red-600/80 mb-8">{result.error}</p>
+            <p className="text-xs font-bold text-ink-500 uppercase tracking-widest leading-relaxed">
+              If this was unintentional, please contact the tenant to re-issue 
+              the validation token.
             </p>
+            <Link
+              href="/"
+              className="mt-10 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-ink-900 group"
+            >
+              Support Desk
+              <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </div>
         )}
 
         {/* Confirmation prompt */}
         {!result && (
-          <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="bg-paper-50 border border-ink-900/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] overflow-hidden">
             {!payment ? (
-              <div className="p-8 text-center">
-                <AlertTriangle className="mx-auto mb-3 h-10 w-10 text-amber-500" />
-                <h2 className="font-semibold text-slate-900">
-                  Link not found or expired
+              <div className="p-10 text-center">
+                <AlertTriangle className="mx-auto mb-6 h-12 w-12 text-amber-500" />
+                <h2 className="font-display text-2xl font-bold text-ink-900 mb-4">
+                  Token Invalid
                 </h2>
-                <p className="mt-2 text-sm text-slate-500">
-                  This confirmation link may have expired or already been used.
+                <p className="text-sm font-medium text-ink-600 leading-relaxed">
+                  This validation link has expired or was previously utilized in the 
+                  RentProof protocol.
                 </p>
               </div>
             ) : payment.status === 'verified' ? (
-              <div className="p-8 text-center">
-                <CheckCircle2 className="mx-auto mb-3 h-10 w-10 text-green-500" />
-                <h2 className="font-semibold text-slate-900">
-                  Already confirmed
+              <div className="p-10 text-center">
+                <CheckCircle2 className="mx-auto mb-6 h-12 w-12 text-brand-600" />
+                <h2 className="font-display text-2xl font-bold text-ink-900 mb-4">
+                  Already Audited
                 </h2>
-                <p className="mt-2 text-sm text-slate-500">
-                  This payment has already been confirmed.
+                <p className="text-sm font-medium text-ink-600 leading-relaxed">
+                  This payment has already been mutually verified. No further action 
+                  is required.
                 </p>
+                <Link href={`/verify/${payment.receipt_id}`} className="mt-8 inline-block text-[10px] font-bold uppercase tracking-widest text-brand-600">
+                  View Public Record
+                </Link>
               </div>
             ) : (
               <>
-                <div className="border-b border-slate-100 p-6">
-                  <h1 className="font-display text-xl font-bold text-slate-900">
-                    Confirm Rent Receipt
+                <div className="bg-ink-900 p-10 text-paper-50">
+                  <div className="mb-6 inline-flex items-center gap-2 border border-paper-50/20 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.3em] text-paper-50/40 font-mono">
+                    VALIDATION-REQ
+                  </div>
+                  <h1 className="font-display text-3xl font-bold italic tracking-tight">
+                    Confirm Receipt
                   </h1>
-                  <p className="mt-1 text-sm text-slate-500">
-                    A tenant has recorded the following payment. Please review
-                    and confirm if accurate.
+                  <p className="mt-4 text-xs font-bold uppercase tracking-widest text-paper-50/60 leading-relaxed">
+                    Verify the following declaration record for mutual 
+                    acknowledgment within the RentProof system.
                   </p>
                 </div>
 
-                <div className="divide-y divide-slate-50 p-6">
-                  <div className="pb-4">
-                    <p className="text-xs text-slate-400">RECEIPT ID</p>
-                    <p className="receipt-id-chip mt-0.5 text-sm text-slate-700">
-                      {payment.receipt_id}
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 py-4">
+                <div className="p-10 space-y-10">
+                  <div className="grid grid-cols-2 gap-8">
                     <div>
-                      <p className="text-xs text-slate-400">PROPERTY</p>
-                      <p className="mt-0.5 text-sm font-medium text-slate-900">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-ink-400 mb-1">PROPERTY</p>
+                      <p className="text-sm font-bold text-ink-900 uppercase tracking-widest truncate">
                         {payment.tenancy?.property?.address_line1}
                       </p>
-                      <p className="text-xs text-slate-500">
-                        {payment.tenancy?.property?.city},{' '}
-                        {payment.tenancy?.property?.postcode}
+                      <p className="text-[10px] font-bold text-ink-500 uppercase tracking-widest mt-0.5">
+                        {payment.tenancy?.property?.city}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-400">AMOUNT</p>
-                      <p className="mt-0.5 font-display text-lg font-bold text-slate-900">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-ink-400 mb-1">AMOUNT</p>
+                      <p className="font-display text-xl font-bold text-ink-900">
                         {formatCurrency(payment.amount, payment.currency)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-400">PERIOD</p>
-                      <p className="mt-0.5 text-sm text-slate-700">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-ink-400 mb-1">PERIOD</p>
+                      <p className="text-sm font-bold text-ink-900 uppercase tracking-widest">
                         {formatRentPeriod(
                           payment.rent_period_start,
                           payment.rent_period_end
@@ -228,39 +228,39 @@ export default function ConfirmPaymentPage({ params }: Props) {
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-400">METHOD</p>
-                      <p className="mt-0.5 text-sm text-slate-700">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-ink-400 mb-1">METHOD</p>
+                      <p className="text-sm font-bold text-ink-900 uppercase tracking-widest">
                         {payment.payment_method?.replace(/_/g, ' ')}
                       </p>
                     </div>
                   </div>
 
-                  <div className="pt-4">
-                    <div className="mb-4 rounded-lg bg-amber-50 p-3 text-xs text-amber-700">
-                      By clicking confirm, you acknowledge that you received
-                      this payment in the amount and period stated above.
-                    </div>
+                  <div className="border-t border-ink-900/10 pt-10">
+                    <p className="mb-6 text-[10px] font-bold text-ink-500 uppercase leading-relaxed tracking-widest italic">
+                      Disclaimer: By confirming, you legally acknowledge receipt of 
+                      these funds for the specified period.
+                    </p>
 
-                    <div className="flex gap-3">
+                    <div className="flex gap-4">
                       <Button
                         variant="outline"
-                        className="flex-1"
+                        className="flex-1 rounded-none border-ink-900/10 text-ink-600 hover:bg-paper-100 h-14 uppercase tracking-widest text-[10px]"
                         onClick={() =>
                           setResult({
                             success: false,
-                            error: 'You declined to confirm this payment.',
+                            error: 'You declined to confirm this payment declaration.',
                           })
                         }
                       >
                         Decline
                       </Button>
                       <Button
-                        variant="secondary"
-                        className="flex-1"
+                        variant="primary"
+                        className="flex-1 rounded-none bg-ink-900 hover:bg-ink-800 text-paper-50 h-14 uppercase tracking-widest text-[10px]"
                         loading={confirming}
                         onClick={handleConfirm}
                       >
-                        Confirm Payment
+                        Confirm Audit
                       </Button>
                     </div>
                   </div>
@@ -270,8 +270,8 @@ export default function ConfirmPaymentPage({ params }: Props) {
           </div>
         )}
 
-        <p className="mt-6 text-center text-xs text-slate-400">
-          RentProof is a documentation utility, not a bank or escrow service.
+        <p className="mt-12 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-ink-400 leading-relaxed">
+          RentProof Documentation Protocol <span className="font-mono opacity-50 px-2">{"//"}</span> Institutional Standard
         </p>
       </div>
     </div>

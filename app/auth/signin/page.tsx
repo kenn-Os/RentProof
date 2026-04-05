@@ -6,6 +6,7 @@ import { ShieldCheck, Eye, EyeOff } from 'lucide-react'
 import { signIn } from '@/app/auth/actions'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/FormFields'
+import { Logo } from '@/components/ui/Logo'
 
 export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -20,7 +21,7 @@ export default function SignInPage() {
     const formData = new FormData(e.currentTarget)
     const result = await signIn(formData)
 
-    if (result?.error) {
+    if (result && 'error' in result && result.error) {
       setError(result.error)
       setLoading(false)
     }
@@ -30,11 +31,9 @@ export default function SignInPage() {
     <div className="flex min-h-screen">
       {/* Left panel */}
       <div className="hidden w-1/2 flex-col justify-between bg-slate-950 p-12 md:flex">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10">
-            <ShieldCheck className="h-4.5 w-4.5 text-white" />
-          </div>
-          <span className="font-display text-lg font-semibold text-white">
+        <Link href="/" className="flex items-center gap-3">
+          <Logo iconOnly size="md" />
+          <span className="font-display text-lg font-bold text-white uppercase tracking-widest">
             RentProof
           </span>
         </Link>

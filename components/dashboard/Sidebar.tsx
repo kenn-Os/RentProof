@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useTransition } from "react";
 import {
-  ShieldCheck,
   LayoutDashboard,
   Receipt,
   Building2,
@@ -14,13 +14,16 @@ import {
   BarChart3,
   Plus,
   Settings,
-} from 'lucide-react'
-import { cn, getInitials } from '@/lib/utils'
-import { signOut } from '@/app/auth/actions'
-import type { Profile } from '@/lib/types/database'
+} from "lucide-react";
+import { cn, getInitials } from "@/lib/utils";
+import { Logo } from "@/components/ui/Logo";
+import { signOut } from "@/app/auth/actions";
+import type { Profile } from "@/lib/types/database";
 
 interface SidebarProps {
-  profile: Profile
+  profile: Profile;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const navByRole: Record<
@@ -28,121 +31,194 @@ const navByRole: Record<
   { href: string; label: string; icon: React.ReactNode }[]
 > = {
   tenant: [
-    { href: '/dashboard/tenant', label: 'Overview', icon: <LayoutDashboard className="h-4 w-4" /> },
-    { href: '/dashboard/tenant/payments', label: 'My Payments', icon: <Receipt className="h-4 w-4" /> },
-    { href: '/dashboard/tenant/receipts', label: 'Receipts', icon: <FileText className="h-4 w-4" /> },
+    {
+      href: "/dashboard/tenant",
+      label: "Overview",
+      icon: <LayoutDashboard className="h-4 w-4" />,
+    },
+    {
+      href: "/dashboard/tenant/payments",
+      label: "My Payments",
+      icon: <Receipt className="h-4 w-4" />,
+    },
+    {
+      href: "/dashboard/tenant/receipts",
+      label: "Receipts",
+      icon: <FileText className="h-4 w-4" />,
+    },
   ],
   landlord: [
-    { href: '/dashboard/landlord', label: 'Overview', icon: <LayoutDashboard className="h-4 w-4" /> },
-    { href: '/dashboard/landlord/confirmations', label: 'Confirmations', icon: <CheckSquare className="h-4 w-4" /> },
-    { href: '/dashboard/landlord/properties', label: 'Properties', icon: <Building2 className="h-4 w-4" /> },
+    {
+      href: "/dashboard/landlord",
+      label: "Overview",
+      icon: <LayoutDashboard className="h-4 w-4" />,
+    },
+    {
+      href: "/dashboard/landlord/confirmations",
+      label: "Confirmations",
+      icon: <CheckSquare className="h-4 w-4" />,
+    },
+    {
+      href: "/dashboard/landlord/properties",
+      label: "Properties",
+      icon: <Building2 className="h-4 w-4" />,
+    },
   ],
   agent: [
-    { href: '/dashboard/agent', label: 'Overview', icon: <LayoutDashboard className="h-4 w-4" /> },
-    { href: '/dashboard/agent/tenants', label: 'Tenants', icon: <Users className="h-4 w-4" /> },
-    { href: '/dashboard/agent/reports', label: 'Reports', icon: <BarChart3 className="h-4 w-4" /> },
+    {
+      href: "/dashboard/agent",
+      label: "Overview",
+      icon: <LayoutDashboard className="h-4 w-4" />,
+    },
+    {
+      href: "/dashboard/agent/tenants",
+      label: "Tenants",
+      icon: <Users className="h-4 w-4" />,
+    },
+    {
+      href: "/dashboard/agent/reports",
+      label: "Reports",
+      icon: <BarChart3 className="h-4 w-4" />,
+    },
   ],
-}
+};
 
-export function Sidebar({ profile }: SidebarProps) {
-  const pathname = usePathname()
-  const navItems = navByRole[profile.role] ?? []
+export function Sidebar({ profile, isOpen, onClose }: SidebarProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  const handleSignOut = async () => {
+    startTransition(async () => {
+      try {
+        await signOut();
+      } catch {
+        router.push("/");
+      }
+    });
+  };
+
+  const navItems = navByRole[profile.role] ?? [];
 
   return (
-    <aside className="flex h-screen w-60 flex-shrink-0 flex-col border-r border-slate-200 bg-white">
-      {/* Logo */}
-      <div className="flex h-16 items-center gap-2.5 border-b border-slate-100 px-5">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-900">
-          <ShieldCheck className="h-4 w-4 text-white" />
-        </div>
-        <span className="font-display text-base font-semibold text-slate-900">
-          RentProof
-        </span>
-      </div>
-
-      {/* Quick action */}
-      <div className="p-4">
-        {profile.role === 'tenant' && (
-          <Link
-            href="/dashboard/tenant/payments/new"
-            className="flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-slate-900 text-sm font-medium text-white transition-colors hover:bg-slate-800"
-          >
-            <Plus className="h-4 w-4" />
-            Record Payment
-          </Link>
+    <>
+      {/* Mobile Overlay */}
+      <div 
+        className={cn(
+          "fixed inset-0 z-40 bg-ink-900/40 backdrop-blur-sm lg:hidden transition-opacity duration-300",
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
-        {profile.role === 'landlord' && (
-          <Link
-            href="/dashboard/landlord/properties/new"
-            className="flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-slate-900 text-sm font-medium text-white transition-colors hover:bg-slate-800"
+        onClick={onClose}
+      />
+
+      <aside className={cn(
+        "fixed inset-y-0 left-0 z-50 flex h-screen w-64 flex-col border-r border-ink-900/10 bg-paper-100 transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:z-0",
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        {/* Logo */}
+        <div className="flex h-16 items-center justify-between border-b border-ink-900/10 px-5 shadow-sm">
+          <Logo size="sm" />
+          <button 
+            onClick={onClose}
+            className="p-1 rounded-sm text-ink-400 hover:text-ink-900 lg:hidden"
+            aria-label="Close menu"
           >
-            <Plus className="h-4 w-4" />
-            Add Property
-          </Link>
-        )}
-      </div>
-
-      {/* Nav */}
-      <nav className="flex-1 space-y-0.5 px-3">
-        {navItems.map((item) => {
-          const isActive =
-            item.href === `/dashboard/${profile.role}`
-              ? pathname === item.href
-              : pathname.startsWith(item.href)
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'sidebar-nav-item flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium',
-                isActive
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-              )}
-            >
-              <span className={isActive ? 'text-white' : 'text-slate-400'}>
-                {item.icon}
-              </span>
-              {item.label}
-            </Link>
-          )
-        })}
-      </nav>
-
-      {/* Bottom */}
-      <div className="border-t border-slate-100 p-4 space-y-1">
-        <Link
-          href="/dashboard/settings"
-          className="sidebar-nav-item flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-        >
-          <Settings className="h-4 w-4" />
-          Settings
-        </Link>
-
-        {/* Profile */}
-        <div className="mt-2 flex items-center gap-3 rounded-lg px-3 py-2">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-700">
-            {getInitials(profile.full_name)}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-slate-900">
-              {profile.full_name}
-            </p>
-            <p className="text-xs capitalize text-slate-400">{profile.role}</p>
-          </div>
-        </div>
-
-        <form action={signOut}>
-          <button
-            type="submit"
-            className="sidebar-nav-item flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-500 hover:bg-red-50 hover:text-red-600"
-          >
-            <LogOut className="h-4 w-4" />
-            Sign out
+            <Plus className="h-5 w-5 rotate-45" />
           </button>
-        </form>
-      </div>
-    </aside>
-  )
+        </div>
+
+        <div className="p-4 border-b border-ink-900/10 mb-2">
+          {profile.role === "tenant" && (
+            <Link
+              href="/dashboard/tenant/payments/new"
+              className="flex h-9 w-full items-center justify-center gap-2 rounded-sm bg-ink-900 text-[10px] font-bold uppercase tracking-widest text-paper-50 transition-colors hover:bg-ink-800"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Add Payment
+            </Link>
+          )}
+          {profile.role === "landlord" && (
+            <Link
+              href="/dashboard/landlord/properties/new"
+              className="flex h-9 w-full items-center justify-center gap-2 rounded-sm bg-ink-900 text-[10px] font-bold uppercase tracking-widest text-paper-50 transition-colors hover:bg-ink-800"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Add Property
+            </Link>
+          )}
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 space-y-1 px-3 overflow-y-auto">
+          <p className="px-3 py-2 text-[9px] font-bold uppercase tracking-[0.2em] text-ink-400">
+            Navigation
+          </p>
+          {navItems.map((item) => {
+            const isActive =
+              item.href === `/dashboard/${profile.role}`
+                ? pathname === item.href
+                : pathname.startsWith(item.href);
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => onClose()}
+                className={cn(
+                  "sidebar-nav-item flex items-center gap-3 rounded-sm px-3 py-2 text-xs font-bold uppercase tracking-widest",
+                  isActive
+                    ? "bg-ink-900/5 text-ink-900 border-l-2 border-brand-600"
+                    : "text-ink-600 hover:bg-ink-900/5 hover:text-ink-900",
+                )}
+              >
+                <span className={isActive ? "text-brand-600" : "text-ink-400"}>
+                  {item.icon}
+                </span>
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Bottom */}
+        <div className="border-t border-ink-900/10 p-3 space-y-1">
+          <Link
+            href="/dashboard/settings"
+            onClick={() => onClose()}
+            className="sidebar-nav-item flex items-center gap-3 rounded-sm px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-ink-500 hover:bg-ink-900/5 hover:text-ink-900"
+          >
+            <Settings className="h-3.5 w-3.5" />
+            Settings
+          </Link>
+
+          {/* Profile */}
+          <div className="mt-2 flex items-center gap-3 rounded-sm bg-paper-200 px-3 py-2 border border-ink-900/5">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm bg-ink-900 text-[10px] font-bold text-paper-50 uppercase">
+              {getInitials(profile.full_name)}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[10px] font-bold uppercase tracking-tight text-ink-900 leading-tight">
+                {profile.full_name}
+              </p>
+              <p className="text-[9px] font-bold uppercase tracking-widest text-ink-400 mt-0.5">
+                {profile.role}
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={handleSignOut}
+            disabled={isPending}
+            className={cn(
+              "sidebar-nav-item flex w-full items-center gap-3 rounded-sm px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-audit-600 hover:bg-audit-600/5 transition-colors disabled:opacity-50",
+              isPending && "cursor-wait",
+            )}
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            {isPending ? "Logging Out..." : "Sign Out"}
+          </button>
+        </div>
+      </aside>
+    </>
+  );
 }

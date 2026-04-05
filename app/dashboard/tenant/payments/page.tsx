@@ -1,40 +1,55 @@
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
-import { StatusBadge } from '@/components/ui/StatusBadge'
-import { Button } from '@/components/ui/Button'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import Link from "next/link";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { Button } from "@/components/ui/Button";
+import { Plus, FileDown, Search } from "lucide-react";
 import {
-  Plus,
-  FileDown,
-  Search,
-} from 'lucide-react'
-import { formatCurrency, formatDate, formatRentPeriod, formatPaymentMethod } from '@/lib/utils'
-import type { RentPayment } from '@/lib/types/database'
+  formatCurrency,
+  formatDate,
+  formatRentPeriod,
+  formatPaymentMethod,
+} from "@/lib/utils";
+import type { RentPayment } from "@/lib/types/database";
 
-export const metadata = { title: 'My Payments' }
+export const metadata = { title: "My Payments" };
 
 export default async function TenantPaymentsPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) redirect('/auth/signin')
-
-  const { data: payments } = await supabase
-    .from('rent_payments')
-    .select(
-      `
-      *,
-      tenancy:tenancies(
-        *,
-        property:properties(*)
-      ),
-      confirmation:confirmations(*)
-    `
-    )
-    .order('created_at', { ascending: false })
+  const payments: any[] = [
+    {
+      id: "pay-1",
+      receipt_id: "RP-2024-GB-99001",
+      status: "verified",
+      rent_period_start: "2024-03-01",
+      rent_period_end: "2024-03-31",
+      amount: 1200.0,
+      currency: "GBP",
+      payment_method: "bank_transfer",
+      created_at: "2024-04-01T10:00:00Z",
+      tenancy: {
+        property: {
+          address_line1: "123 Baker Street",
+          city: "London",
+        },
+      },
+    },
+    {
+      id: "pay-2",
+      receipt_id: "RP-2024-GB-99002",
+      status: "pending",
+      rent_period_start: "2024-04-01",
+      rent_period_end: "2024-04-30",
+      amount: 1200.0,
+      currency: "GBP",
+      payment_method: "bank_transfer",
+      created_at: "2024-05-01T09:00:00Z",
+      tenancy: {
+        property: {
+          address_line1: "123 Baker Street",
+          city: "London",
+        },
+      },
+    },
+  ];
 
   return (
     <div className="p-8">
@@ -55,7 +70,6 @@ export default async function TenantPaymentsPage() {
         </Link>
       </div>
 
-      {/* Filters (static for now — enhance with client-side filtering) */}
       <div className="mb-5 flex items-center gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -78,12 +92,15 @@ export default async function TenantPaymentsPage() {
       {!payments || payments.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-200 bg-white p-16 text-center">
           <p className="text-sm text-slate-500">No payment records yet.</p>
-          <Link href="/dashboard/tenant/payments/new" className="mt-3 inline-block text-sm text-green-600 hover:underline">
+          <Link
+            href="/dashboard/tenant/payments/new"
+            className="mt-3 inline-block text-sm text-green-600 hover:underline"
+          >
             Record your first payment →
           </Link>
         </div>
       ) : (
-        <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50">
@@ -115,7 +132,7 @@ export default async function TenantPaymentsPage() {
               {(payments as unknown as RentPayment[]).map((payment) => (
                 <tr
                   key={payment.id}
-                  className="hover:bg-slate-50 transition-colors"
+                  className="transition-colors hover:bg-slate-50"
                 >
                   <td className="px-5 py-4">
                     <span className="receipt-id-chip rounded bg-slate-100 px-1.5 py-0.5 text-slate-700">
@@ -124,7 +141,7 @@ export default async function TenantPaymentsPage() {
                   </td>
                   <td className="px-5 py-4">
                     <p className="text-sm font-medium text-slate-900">
-                      {payment.tenancy?.property?.address_line1 ?? '—'}
+                      {payment.tenancy?.property?.address_line1 ?? "—"}
                     </p>
                     <p className="text-xs text-slate-400">
                       {payment.tenancy?.property?.city}
@@ -133,7 +150,7 @@ export default async function TenantPaymentsPage() {
                   <td className="px-5 py-4 text-sm text-slate-600">
                     {formatRentPeriod(
                       payment.rent_period_start,
-                      payment.rent_period_end
+                      payment.rent_period_end,
                     )}
                   </td>
                   <td className="px-5 py-4">
@@ -166,5 +183,5 @@ export default async function TenantPaymentsPage() {
         </div>
       )}
     </div>
-  )
+  );
 }

@@ -2,19 +2,27 @@
 
 @theme {
   --font-display: "Playfair Display", Georgia, serif;
-  --font-body: "DM Sans", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
 
-  /* Brand green (trust / verification) */
-  --color-brand-50: #f0fdf4;
-  --color-brand-100: #dcfce7;
-  --color-brand-200: #bbf7d0;
-  --color-brand-300: #86efac;
-  --color-brand-400: #4ade80;
-  --color-brand-500: #22c55e;
-  --color-brand-600: #16a34a;
-  --color-brand-700: #15803d;
-  --color-brand-800: #166534;
-  --color-brand-900: #14532d;
+  /* Archive Premium Palette */
+  --color-paper-50: #ffffff;
+  --color-paper-100: #fafaf9;
+  --color-paper-200: #f5f5f4;
+  --color-paper-300: #e7e5e4;
+  
+  --color-ink-900: #1c1917;
+  --color-ink-800: #292524;
+  --color-ink-700: #44403c;
+  --color-ink-600: #57534e;
+
+  /* Banker Green (Success / Verified) */
+  --color-brand-600: #064e3b;
+  --color-brand-500: #065f46;
+  --color-brand-400: #047857;
+  
+  /* Audit Red (Alerts / Disputes) */
+  --color-audit-600: #7f1d1d;
+  --color-audit-500: #991b1b;
 }
 
 /* Smooth scrolling */
@@ -22,19 +30,30 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Selection colour */
+/* Selection colour (High contrast ink on paper) */
 ::selection {
-  background: #bbf7d0;
-  color: #14532d;
+  background: #1c1917;
+  color: #fafaf9;
 }
 
-/* Focus styles for accessibility */
+body {
+  background-color: #fafaf9;
+  color: #1c1917;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Focus styles (Bold primary border) */
 :focus-visible {
-  outline: 2px solid #0f172a;
+  outline: 2px solid #064e3b;
   outline-offset: 2px;
 }
 
-/* Receipt animation */
+/* Institutional grid utility */
+.grid-paper {
+  border: 1px solid rgba(28, 25, 23, 0.1);
+}
+
+/* Receipt animation (Kept but updated for brand green) */
 @keyframes receipt-stamp {
   0% { transform: scale(1.4) rotate(-8deg); opacity: 0; }
   60% { transform: scale(0.95) rotate(1deg); opacity: 1; }

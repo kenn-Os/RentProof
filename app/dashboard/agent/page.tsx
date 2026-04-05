@@ -1,146 +1,200 @@
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
-import { StatCard } from '@/components/dashboard/StatCard'
-import { Property, Tenancy, RentPayment } from '@/lib/types/database'
-import {
-  Building2,
-  Users,
-  FileText,
-  TrendingUp,
-  ArrowRight,
-} from 'lucide-react'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import Link from "next/link";
+import { StatCard } from "@/components/dashboard/StatCard";
+import { Property, Tenancy, RentPayment } from "@/lib/types/database";
+import { Building2 } from "lucide-react";
 
-export const metadata = { title: 'Agent Dashboard' }
+export const metadata = { title: "Agent Dashboard" };
 
 export default async function AgentDashboardPage() {
-  const supabase = await createClient()
+  // Mock data for UI prototype
+  const profile = {
+    full_name: "Alex Agent",
+    company_name: "Prime Rentals Ltd",
+    role: "agent",
+  };
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const mockProperties: any[] = [
+    {
+      id: "prop-1",
+      address_line1: "123 Baker Street",
+      city: "London",
+      postcode: "NW1 6XE",
+      is_active: true,
+      tenancies: [
+        {
+          id: "tenancy-1",
+          is_active: true,
+          rent_payments: [
+            {
+              id: "pay-1",
+              status: "verified",
+              created_at: new Date().toISOString(),
+            },
+            {
+              id: "pay-2",
+              status: "pending",
+              created_at: new Date().toISOString(),
+            },
+          ],
+        },
+      ],
+    },
+  ];
 
-  if (!user) redirect('/auth/signin')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-
-  if (profile?.role !== 'agent') redirect(`/dashboard/${profile?.role}`)
-
-  // Get managed properties
-  const { data: properties } = await supabase
-    .from('properties')
-    .select('*, tenancies(*, rent_payments(*))')
-    .eq('agent_id', user.id)
-    .eq('is_active', true)
-
-  const typedProperties = properties as unknown as Property[]
-  const allTenancies = typedProperties?.flatMap((p) => p.tenancies ?? []) ?? []
-  const allPayments = allTenancies.flatMap((t) => t.rent_payments ?? [])
+  const typedProperties = (mockProperties as unknown as Property[]) ?? [];
+  const allTenancies = typedProperties?.flatMap((p) => p.tenancies ?? []) ?? [];
+  const allPayments = allTenancies.flatMap((t) => t.rent_payments ?? []);
   const thisMonthPayments = allPayments.filter((p) => {
-    const d = new Date(p.created_at)
-    const now = new Date()
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-  })
+    const d = new Date(p.created_at);
+    const now = new Date();
+    return (
+      d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+    );
+  });
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="font-display text-2xl font-bold text-slate-900">
-          Agent Dashboard
-        </h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Portfolio overview for {profile?.company_name ?? profile?.full_name}
-        </p>
+    <div className="p-6 md:p-10 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="mb-12 flex flex-col sm:flex-row sm:items-start justify-between border-b border-ink-900/20 pb-8 gap-6 sm:gap-0">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-600 mb-2 font-mono">
+            AGENCY-DASHBOARD-v1.0
+          </p>
+          <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-ink-900">
+            {profile?.company_name ?? profile?.full_name}
+          </h1>
+          <p className="mt-2 text-xs md:text-sm font-medium text-ink-600 leading-relaxed">
+            Managed Portfolio: <span className="text-ink-900 font-bold">{typedProperties?.length ?? 0}</span> Properties — Active Records: <span className="text-ink-900 font-bold font-mono tracking-widest">{allPayments.length}</span>
+          </p>
+        </div>
+        <div className="flex items-center gap-4 border-l border-ink-900/10 pl-4 sm:border-l-0 sm:pl-0">
+           <p className="text-[10px] font-bold uppercase tracking-widest text-ink-400">
+            System Agent:<br />
+            <span className="text-ink-700 font-bold">{profile.full_name}</span>
+          </p>
+        </div>
       </div>
 
-      {/* Stats */}
-      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      {/* Stats Table */}
+      <div className="mb-12 grid grid-cols-1 sm:grid-cols-2 gap-px bg-ink-900/10 border border-ink-900/10 lg:grid-cols-4">
         <StatCard
-          title="Properties"
-          value={properties?.length ?? 0}
-          icon={<Building2 className="h-5 w-5 text-slate-600" />}
-          iconBg="bg-slate-100"
+          title="Portfolio Total"
+          value={typedProperties?.length ?? 0}
+          subtitle="Total managed assets"
+          className="border-0 bg-paper-50"
         />
         <StatCard
-          title="Tenants"
+          title="Active Occupancy"
           value={allTenancies.filter((t: Tenancy) => t.is_active).length}
-          icon={<Users className="h-5 w-5 text-blue-600" />}
-          iconBg="bg-blue-50"
+          subtitle="Verified leases"
+          className="border-0 bg-paper-50"
         />
         <StatCard
-          title="Total Receipts"
+          title="Total Records"
           value={allPayments.length}
-          icon={<FileText className="h-5 w-5 text-violet-600" />}
-          iconBg="bg-violet-50"
+          subtitle="Total archival manifests"
+          className="border-0 bg-paper-50"
         />
         <StatCard
-          title="This Month"
+          title="Period Delta"
           value={thisMonthPayments.length}
-          subtitle="payment records"
-          icon={<TrendingUp className="h-5 w-5 text-green-600" />}
-          iconBg="bg-green-50"
+          subtitle="New records (current month)"
+          className="border-0 bg-paper-50"
         />
       </div>
 
-      {/* Properties table */}
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-100 p-5">
-          <h2 className="font-semibold text-slate-900">Managed Properties</h2>
+      {/* Managed Properties Ledger */}
+      <div className="border border-ink-900/15 bg-paper-50">
+        <div className="flex items-center justify-between border-b border-ink-900/10 p-6 bg-paper-100">
+          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-ink-900 flex items-center gap-2">
+            <Building2 className="h-4 w-4" />
+            Property List
+          </h2>
           <Link
             href="/dashboard/agent/tenants"
-            className="flex items-center gap-1 text-sm text-green-600 hover:text-green-700"
+            className="text-[10px] font-bold uppercase tracking-widest text-brand-600 hover:text-brand-700 transition-colors"
           >
-            All tenants <ArrowRight className="h-3.5 w-3.5" />
+            View All Tenants →
           </Link>
         </div>
 
-        {(!properties || properties.length === 0) ? (
-          <div className="p-10 text-center">
-            <Building2 className="mx-auto mb-3 h-10 w-10 text-slate-200" />
-            <p className="text-sm text-slate-500">
-              No properties assigned yet. Contact landlords to be added as a managing agent.
+        {!typedProperties || typedProperties.length === 0 ? (
+          <div className="p-20 text-center">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-ink-400">No Properties</p>
+            <p className="mt-4 text-xs font-medium text-ink-500 max-w-sm mx-auto">
+              No assets have been assigned to this agency protocol. Initialize linkage with property owners to begin documentation.
             </p>
           </div>
         ) : (
-          <div className="overflow-hidden">
+          <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Property</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Tenants</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Receipts</th>
-                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Pending</th>
+                <tr className="border-b border-ink-900/10 bg-paper-100/50">
+                  <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-ink-500">
+                    Property Address
+                  </th>
+                  <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-ink-500">
+                    Active Protocols
+                  </th>
+                  <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-ink-500">
+                    Record Count
+                  </th>
+                  <th className="px-6 py-4 text-left text-[10px] font-bold uppercase tracking-widest text-ink-500">
+                    Audit Status
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-ink-900/5">
                 {typedProperties.map((property: Property) => {
-                  const activeTenancies = (property.tenancies ?? []).filter((t: Tenancy) => t.is_active)
-                  const propertyPayments = (property.tenancies ?? []).flatMap((t: Tenancy) => t.rent_payments ?? [])
-                  const pending = propertyPayments.filter((p: RentPayment) => p.status === 'pending').length
+                  const activeTenancies = (property.tenancies ?? []).filter(
+                    (t: Tenancy) => t.is_active,
+                  );
+                  const propertyPayments = (property.tenancies ?? []).flatMap(
+                    (t: Tenancy) => t.rent_payments ?? [],
+                  );
+                  const pending = propertyPayments.filter(
+                    (p: RentPayment) => p.status === "pending",
+                  ).length;
 
                   return (
-                    <tr key={property.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-5 py-4">
-                        <p className="text-sm font-medium text-slate-900">{property.address_line1}</p>
-                        <p className="text-xs text-slate-400">{property.city}, {property.postcode}</p>
+                    <tr
+                      key={property.id}
+                      className="group transition-colors hover:bg-paper-100"
+                    >
+                      <td className="px-6 py-5">
+                        <p className="text-sm font-bold text-ink-900 uppercase tracking-tight">
+                          {property.address_line1}
+                        </p>
+                        <p className="text-[11px] font-medium text-ink-500 mt-1">
+                          {property.city}, {property.postcode}
+                        </p>
                       </td>
-                      <td className="px-5 py-4 text-sm text-slate-600">{activeTenancies.length}</td>
-                      <td className="px-5 py-4 text-sm text-slate-600">{propertyPayments.length}</td>
-                      <td className="px-5 py-4">
+                      <td className="px-6 py-5">
+                         <div className="flex items-center gap-2">
+                           <span className="text-sm font-bold text-ink-900">{activeTenancies.length}</span>
+                           <span className="text-[9px] font-bold uppercase tracking-widest text-ink-400">Lease(s)</span>
+                         </div>
+                      </td>
+                      <td className="px-6 py-5">
+                         <div className="flex items-center gap-2">
+                           <span className="text-sm font-bold text-ink-900">{propertyPayments.length}</span>
+                           <span className="text-[9px] font-bold uppercase tracking-widest text-ink-400">Records</span>
+                         </div>
+                      </td>
+                      <td className="px-6 py-5">
                         {pending > 0 ? (
-                          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-white">
-                            {pending}
-                          </span>
+                          <div className="flex items-center gap-2">
+                             <span className="flex h-5 px-1.5 items-center justify-center rounded-sm bg-audit-600 text-[10px] font-bold text-paper-50">
+                              {pending} ACTION
+                            </span>
+                          </div>
                         ) : (
-                          <span className="text-xs text-slate-400">—</span>
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-ink-300 italic">Verified</span>
                         )}
                       </td>
                     </tr>
-                  )
+                  );
                 })}
               </tbody>
             </table>
@@ -148,5 +202,5 @@ export default async function AgentDashboardPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

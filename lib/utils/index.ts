@@ -112,22 +112,3 @@ export function getInitials(name: string): string {
     .toUpperCase()
     .slice(0, 2)
 }
-
-export async function logAuditAction(
-  supabase: ReturnType<typeof import('@/lib/supabase/client').createClient>,
-  params: {
-    user_id?: string
-    action: string
-    target_id?: string
-    target_type?: string
-    metadata?: Record<string, unknown>
-  }
-) {
-  await supabase.from('audit_logs').insert({
-    user_id: params.user_id ?? null,
-    action: params.action,
-    target_id: params.target_id ?? null,
-    target_type: params.target_type ?? null,
-    metadata: params.metadata ?? null,
-  })
-}

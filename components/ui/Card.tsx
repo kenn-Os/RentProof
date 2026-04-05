@@ -9,7 +9,7 @@ function Card({ className, children }: CardProps) {
   return (
     <div
       className={cn(
-        'rounded-xl border border-slate-200 bg-white shadow-sm',
+        'rounded-sm border border-ink-900/10 bg-paper-50',
         className
       )}
     >

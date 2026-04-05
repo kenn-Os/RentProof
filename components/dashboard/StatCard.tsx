@@ -15,33 +15,32 @@ export function StatCard({
   value,
   subtitle,
   icon,
-  iconBg = 'bg-slate-100',
   trend,
   className,
 }: StatCardProps) {
   return (
     <div
       className={cn(
-        'rounded-xl border border-slate-200 bg-white p-5 shadow-sm',
+        'rounded-sm border border-ink-900/15 bg-paper-50 p-6',
         className
       )}
     >
       <div className="flex items-start justify-between">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-ink-600">
             {title}
           </p>
-          <p className="mt-1.5 font-display text-2xl font-bold text-slate-900">
+          <p className="mt-2 text-3xl font-bold tracking-tight text-ink-900">
             {value}
           </p>
           {subtitle && (
-            <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>
+            <p className="mt-1 text-[11px] font-medium text-ink-500">{subtitle}</p>
           )}
           {trend && (
             <div
               className={cn(
-                'mt-2 inline-flex items-center gap-1 text-xs font-medium',
-                trend.positive ? 'text-green-600' : 'text-red-500'
+                'mt-3 inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide',
+                trend.positive ? 'text-brand-600' : 'text-audit-600'
               )}
             >
               <span>{trend.positive ? '↑' : '↓'}</span>
@@ -50,12 +49,7 @@ export function StatCard({
           )}
         </div>
         {icon && (
-          <div
-            className={cn(
-              'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg',
-              iconBg
-            )}
-          >
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center text-ink-400">
             {icon}
           </div>
         )}

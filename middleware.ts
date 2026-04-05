@@ -1,72 +1,32 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet: { name: string; value: string; options: any }[]) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            request.cookies.set(name, value)
-          )
-          supabaseResponse = NextResponse.next({
-            request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
-
-  // Refresh session
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
   const pathname = request.nextUrl.pathname
-
-  // Protected routes
-  const protectedPaths = ['/dashboard']
+  
+  // Define auth paths
   const authPaths = ['/auth/signin', '/auth/signup']
 
-  const isProtected = protectedPaths.some((p) => pathname.startsWith(p))
   const isAuthPath = authPaths.some((p) => pathname.startsWith(p))
 
-  // Not logged in, trying to access protected route
-  if (!user && isProtected) {
+  // For UI prototype, we'll use a mock user
+  // In a real app, this would check a session cookie
+  const mockUser = {
+    id: 'mock-user-123',
+    email: 'tenant@example.com',
+    role: 'tenant' // Change to 'landlord' or 'agent' to test other views
+  }
+
+  // Redirect to dashboard if trying to access auth pages while "logged in"
+  if (mockUser && isAuthPath) {
     const url = request.nextUrl.clone()
-    url.pathname = '/auth/signin'
-    url.searchParams.set('redirectTo', pathname)
+    url.pathname = `/dashboard/${mockUser.role}`
     return NextResponse.redirect(url)
   }
 
-  // Already logged in, trying to access auth pages
-  if (user && isAuthPath) {
-    // Get user role to redirect appropriately
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    const role = profile?.role ?? 'tenant'
-    const url = request.nextUrl.clone()
-    url.pathname = `/dashboard/${role}`
-    return NextResponse.redirect(url)
-  }
-
-  return supabaseResponse
+  // If we wanted to "log out", we'd set mockUser to null and redirect to signin
+  // but for now, we'll keep the dashboard accessible.
+  
+  return NextResponse.next()
 }
 
 export const config = {

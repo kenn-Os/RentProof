@@ -1,74 +1,94 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { ArrowLeft, Upload, Info, Copy, CheckCircle2 } from 'lucide-react'
-import { toast } from 'sonner'
-import { createRentPayment } from '@/app/dashboard/actions'
-import { Button } from '@/components/ui/Button'
-import { Input, Select, Textarea } from '@/components/ui/FormFields'
-import { createClient } from '@/lib/supabase/client'
-import type { Tenancy, Property, PaymentMethod } from '@/lib/types/database'
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { ArrowLeft, Upload, Info, Copy, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
+import { createRentPayment } from "@/app/dashboard/actions";
+import { Button } from "@/components/ui/Button";
+import { Input, Select, Textarea } from "@/components/ui/FormFields";
+import type { Tenancy, Property, PaymentMethod } from "@/lib/types/database";
 
 export default function NewPaymentPage() {
-
-  const [loading, setLoading] = useState(false)
-  const [tenancies, setTenancies] = useState<(Tenancy & { property: Property })[]>([])
-  const [selectedTenancy, setSelectedTenancy] = useState<string>('')
-  const [evidenceFile, setEvidenceFile] = useState<File | null>(null)
-  const [confirmationUrl, setConfirmationUrl] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
+  const [loading, setLoading] = useState(false);
+  const [tenancies, setTenancies] = useState<
+    (Tenancy & { property: Property })[]
+  >([]);
+  const [selectedTenancy, setSelectedTenancy] = useState<string>("");
+  const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
+  const [confirmationUrl, setConfirmationUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    async function loadTenancies() {
-      const supabase = createClient()
-      const { data } = await supabase
-        .from('tenancies')
-        .select('*, property:properties(*)')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-
-      setTenancies(data ?? [])
-      if (data && data.length === 1) setSelectedTenancy(data[0].id)
-    }
-    loadTenancies()
-  }, [])
+    // Mock data for UI prototype
+    const mockTenancies: (Tenancy & { property: Property })[] = [
+      {
+        id: "tenancy-1",
+        tenant_id: "mock-user-123",
+        property_id: "prop-1",
+        rent_amount: 1200,
+        currency: "GBP",
+        start_date: "2024-01-01",
+        end_date: "2025-01-01",
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        property: {
+          id: "prop-1",
+          landlord_id: "landlord-123",
+          address_line1: "123 Baker Street",
+          address_line2: null,
+          city: "London",
+          postcode: "NW1 6XE",
+          country: "GB",
+          agent_id: null,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      },
+    ];
+    setTenancies(mockTenancies);
+    setSelectedTenancy(mockTenancies[0].id);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
-    const form = new FormData(e.currentTarget)
+    const form = new FormData(e.currentTarget);
 
     const result = await createRentPayment({
       tenancy_id: selectedTenancy,
-      rent_period_start: form.get('rent_period_start') as string,
-      rent_period_end: form.get('rent_period_end') as string,
-      amount: parseFloat(form.get('amount') as string),
-      payment_method: form.get('payment_method') as PaymentMethod,
-      payment_reference: form.get('payment_reference') as string,
-      notes: form.get('notes') as string,
-    })
+      rent_period_start: form.get("rent_period_start") as string,
+      rent_period_end: form.get("rent_period_end") as string,
+      amount: parseFloat(form.get("amount") as string),
+      payment_method: form.get("payment_method") as PaymentMethod,
+      payment_reference: form.get("payment_reference") as string,
+      notes: form.get("notes") as string,
+    });
 
-    if ('error' in result && result.error) {
-      toast.error(result.error)
-      setLoading(false)
-      return
+    if ("error" in result && result.error) {
+      toast.error(String(result.error));
+      setLoading(false);
+      return;
     }
 
     if (result.confirmationUrl) {
-      setConfirmationUrl(result.confirmationUrl)
-      toast.success('Payment recorded! Share the confirmation link with your landlord.')
+      setConfirmationUrl(result.confirmationUrl);
+      toast.success(
+        "Payment recorded! Share the confirmation link with your landlord.",
+      );
     }
 
-    setLoading(false)
+    setLoading(false);
   }
 
   async function copyConfirmationUrl() {
-    if (!confirmationUrl) return
-    await navigator.clipboard.writeText(confirmationUrl)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    if (!confirmationUrl) return;
+    await navigator.clipboard.writeText(confirmationUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   // Success state
@@ -107,8 +127,8 @@ export default function NewPaymentPage() {
               </button>
             </div>
             <p className="mt-2 text-xs text-slate-400">
-              This link expires in 30 days. If the landlord doesn&apos;t confirm,
-              your timestamped record still stands.
+              This link expires in 30 days. If the landlord doesn&apos;t
+              confirm, your timestamped record still stands.
             </p>
           </div>
 
@@ -121,8 +141,8 @@ export default function NewPaymentPage() {
             </Link>
             <Button
               onClick={() => {
-                setConfirmationUrl(null)
-                setLoading(false)
+                setConfirmationUrl(null);
+                setLoading(false);
               }}
               className="flex-1"
             >
@@ -131,7 +151,7 @@ export default function NewPaymentPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -148,8 +168,8 @@ export default function NewPaymentPage() {
           Record Rent Payment
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Create a timestamped payment record. A confirmation link will be
-          sent to your landlord.
+          Create a timestamped payment record. A confirmation link will be sent
+          to your landlord.
         </p>
       </div>
 
@@ -171,10 +191,13 @@ export default function NewPaymentPage() {
             />
             {tenancies.length === 0 && (
               <p className="mt-2 text-sm text-slate-500">
-                No active tenancies found.{' '}
-                <Link href="/dashboard/tenant" className="text-green-600 underline">
+                No active tenancies found.{" "}
+                <Link
+                  href="/dashboard/tenant"
+                  className="text-green-600 underline"
+                >
                   Contact your landlord
-                </Link>{' '}
+                </Link>{" "}
                 to set one up.
               </p>
             )}
@@ -216,11 +239,11 @@ export default function NewPaymentPage() {
                 label="Payment method"
                 name="payment_method"
                 options={[
-                  { value: 'bank_transfer', label: 'Bank Transfer' },
-                  { value: 'cash', label: 'Cash' },
-                  { value: 'standing_order', label: 'Standing Order' },
-                  { value: 'cheque', label: 'Cheque' },
-                  { value: 'other', label: 'Other' },
+                  { value: "bank_transfer", label: "Bank Transfer" },
+                  { value: "cash", label: "Cash" },
+                  { value: "standing_order", label: "Standing Order" },
+                  { value: "cheque", label: "Cheque" },
+                  { value: "other", label: "Other" },
                 ]}
                 placeholder="Select payment method..."
                 required
@@ -255,7 +278,7 @@ export default function NewPaymentPage() {
             <label className="flex cursor-pointer flex-col items-center rounded-lg border-2 border-dashed border-slate-200 p-6 text-center transition-colors hover:border-slate-300 hover:bg-slate-50">
               <Upload className="mb-2 h-6 w-6 text-slate-400" />
               <span className="text-sm font-medium text-slate-700">
-                {evidenceFile ? evidenceFile.name : 'Click to upload'}
+                {evidenceFile ? evidenceFile.name : "Click to upload"}
               </span>
               <span className="mt-1 text-xs text-slate-400">
                 PNG, JPG, PDF up to 10MB
@@ -298,12 +321,12 @@ export default function NewPaymentPage() {
               If landlord doesn&apos;t confirm
             </h3>
             <p className="text-xs text-amber-700">
-              Your timestamped declaration still stands as documented proof.
-              The system logs the non-response automatically.
+              Your timestamped declaration still stands as documented proof. The
+              system logs the non-response automatically.
             </p>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

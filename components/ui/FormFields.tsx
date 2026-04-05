@@ -17,29 +17,29 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="text-sm font-medium text-slate-700"
+            className="text-xs font-bold uppercase tracking-widest text-ink-700"
           >
             {label}
-            {props.required && <span className="ml-0.5 text-red-500">*</span>}
+            {props.required && <span className="ml-1 text-audit-600">*</span>}
           </label>
         )}
         <input
           ref={ref}
           id={inputId}
           className={cn(
-            'flex h-10 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400',
-            'transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-0 focus-visible:border-transparent',
-            'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-slate-50',
-            error && 'border-red-400 focus-visible:ring-red-500',
+            'flex h-11 w-full rounded-sm border border-ink-900/15 bg-paper-50 px-3 py-2 text-sm text-ink-900 placeholder:text-ink-400',
+            'transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ink-900 focus-visible:border-ink-900',
+            'disabled:cursor-not-allowed disabled:opacity-40 disabled:bg-paper-200 font-medium',
+            error && 'border-audit-500 focus-visible:ring-audit-500',
             className
           )}
           {...props}
         />
         {hint && !error && (
-          <p className="text-xs text-slate-500">{hint}</p>
+          <p className="text-[11px] font-medium leading-tight text-ink-600">{hint}</p>
         )}
         {error && (
-          <p className="text-xs text-red-600">{error}</p>
+          <p className="text-[11px] font-bold text-audit-600">{error}</p>
         )}
       </div>
     )
@@ -65,20 +65,20 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
         {label && (
           <label
             htmlFor={selectId}
-            className="text-sm font-medium text-slate-700"
+            className="text-xs font-bold uppercase tracking-widest text-ink-700"
           >
             {label}
-            {props.required && <span className="ml-0.5 text-red-500">*</span>}
+            {props.required && <span className="ml-1 text-audit-600">*</span>}
           </label>
         )}
         <select
           ref={ref}
           id={selectId}
           className={cn(
-            'flex h-10 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900',
-            'transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-0',
-            'disabled:cursor-not-allowed disabled:opacity-50',
-            error && 'border-red-400',
+            'flex h-11 w-full rounded-sm border border-ink-900/15 bg-paper-50 px-3 py-2 text-sm text-ink-900 font-medium',
+            'transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ink-900 focus-visible:border-ink-900',
+            'disabled:cursor-not-allowed disabled:opacity-40',
+            error && 'border-audit-500',
             className
           )}
           {...props}
@@ -118,26 +118,26 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {label && (
           <label
             htmlFor={textareaId}
-            className="text-sm font-medium text-slate-700"
+            className="text-xs font-bold uppercase tracking-widest text-ink-700"
           >
             {label}
-            {props.required && <span className="ml-0.5 text-red-500">*</span>}
+            {props.required && <span className="ml-1 text-audit-600">*</span>}
           </label>
         )}
         <textarea
           ref={ref}
           id={textareaId}
           className={cn(
-            'flex min-h-[80px] w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400',
-            'transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-0',
-            'disabled:cursor-not-allowed disabled:opacity-50',
-            error && 'border-red-400',
+            'flex min-h-[100px] w-full rounded-sm border border-ink-900/15 bg-paper-50 px-3 py-2 text-sm text-ink-900 placeholder:text-ink-400 font-medium',
+            'transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ink-900 focus-visible:border-ink-900',
+            'disabled:cursor-not-allowed disabled:opacity-40',
+            error && 'border-audit-500',
             className
           )}
           {...props}
         />
-        {hint && !error && <p className="text-xs text-slate-500">{hint}</p>}
-        {error && <p className="text-xs text-red-600">{error}</p>}
+        {hint && !error && <p className="text-[11px] font-medium text-ink-600">{hint}</p>}
+        {error && <p className="text-[11px] font-bold text-audit-600">{error}</p>}
       </div>
     )
   }
